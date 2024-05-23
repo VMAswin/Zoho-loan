@@ -198,7 +198,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                                 <button class="btn btn-warning" onclick="toggleContent()"><i class="fas fa-solid fa-gear"></i> Customize Report</button>
                                 <div id="contentDiv" class="content">
                                     <h6 style="color: white;">Customize Report</h6>
-                                    <form action="{% url 'salesByCustomerReportCustomized' %}" class="form reportCustomizeForm" method="get">
+                                    <form action="{% url 'employee_loan_custom' %}" class="form reportCustomizeForm" method="get">
                                         <div class="px-2">
                                             <label style="text-align:left ">From</label><br>
                                             <input name="from_date" class="inputdate form-control text-light" type="date" id="startDate" value="{{startDate}}" >
@@ -208,15 +208,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                                             <label style="text-align:left ">To</label><br>
                                             <input name="to_date" type="date" class="inputdate form-control text-light" id="endDate" value="{{endDate}}">
                                         </div>
-                                        <div class="px-2">
-                                            <label style="text-align:left;color: white;">Sales Transaction</label><br>
+                                        <!-- <div class="px-2">
+                                            <label style="text-align:left;color: white;">Transaction</label><br>
                                             <select name="transactions" id="salesTransactions" class="form-control text-light" style="background-color: #000;">
                                                 <option value="all">All</option>
-                                                <option value="invoice">Invoice</option>
-                                                <option value="recurring_invoice">Recurring Invoice</option>
-                                                <option value="credit_notes">Credit Notes</option>
                                             </select>
-                                        </div>
+                                        </div> -->
                                         <div class="d-flex px-2 mt-3 mb-4">
                                             <button type="submit" class="btn btn-outline-light w-50">Run Report</button>
                                             <button type="reset" onclick="toggleContent()" class="btn btn-outline-light ml-1 w-50">Cancel</button>
@@ -272,7 +269,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                                             <div id="printdiv2">
                                                 <div class="py-4 bg-warning" >
                                                    
-                                                            <center class="h5 text-white"><b>{{cmp.company_name}}</b></center>
+                                                            <center class="h5 text-white"><b>{{comp_details.company_name}}</b></center>
                                                             <center class="h3 text-white"><b>EMPLOYEE LOAN</b></center>
                                                             {% if startDate and endDate %}
                                                             <center class="h6 text-white">{{startDate}} TO {{endDate}}</center>
@@ -287,52 +284,43 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                                                             <table class="table table-responsive-md mt-4 table-hover" id="reportTable">
                                                                 <thead>
                                                                     <tr>
+                                                                        <th style="text-align: center;">#</th>
                                                                         <th class="text-center">LOAN DATE</th>
                                                                         <th class="text-center">EMPLOYEE NAME</th>
                                                                         <th class="text-center">EMPLOYEE NUMBER</th>
                                                                         <th class="text-center">EXPIRY DATE</th>
                                                                         <th class="text-center">LOAN AMOUNT</th>
                                                                         <th class="text-center">BALANCE</th>
-                                                                        <th class="text-center">STATUS</th>
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody>
-                                                                    <!-- {% for i in reportData %}
+                                                                    {% for i in reportData %}
                                                                     <tr>
+                                                                        <td style="text-align: center;">{{forloop.counter}}</td>
+                                                                        <td class="text-center">{{i.date}}</td>
                                                                         <td class="text-center">{{i.name}}</td>
-                                                                        <td class="text-center">{{i.count}}</td>
-                                                                        <td class="text-center">Rs. {{i.sales|floatformat:2 }}</td>
+                                                                        <td class="text-center">{{i.id}}</td>
+                                                                        <td class="text-center">{{i.expdate}}</td>
+                                                                        <td class="text-center">{{i.loan}}</td>
+                                                                        <td class="text-center">{{i.balance}}</td>
                                                                     </tr>
-                                                                    {% endfor %} -->
+                                                                    {% endfor %}
                                                                 </tbody>
                                                             </table>
                                                         </section>
                                             
-                                                        <!-- <section class="balance-info text-dark">
+                                                        <section class="balance-info text-dark">
                                                             <div class="row p-4">
                                                                 <div class="col-10">
+                                                    
                                                                     <div class="row mb-2">
-                                                                        <div class="col-4">Total customers : <p style="font-size: 19px;">{{totalCustomers|default:0}}</p>
-                                                                        </div><br><br>
-                                                                    </div>
-                                                                    <div class="row mb-2">
-                                                                        <div class="col-4 ">Invoice Sale: <p id="sales" style="font-size: 19px;">₹<span id="totalInvoice">{{totalInvoice|default:0|floatformat:2 }}</span></p></div>
-                                                                        <div class="col-4">Recurring Invoice Sale: <p id="purchase" style="font-size: 19px;">₹<span id="totalReccuringinvoice">{{totalRecInvoice|default:0|floatformat:2}}</span></p></div>
-                                                                        <div class="col-4">Credit Note: <p id="expense" style="font-size: 19px;">₹<span id="totalCreditnote">{{totalCreditNote|default:0|floatformat:2}}</span></p></div>
-                                                                    </div>
-                                                                    <div class="row mb-2">
-                                                                        <div class="col-4 ">SubTotal: <p id="sales" style="font-size: 19px;">₹<span id="totalSale">{{subtotal|default:0|floatformat:2}}</span></p></div>
-                                                                        <div class="col-4">SubTotal Without Credit Note:<p id="expense" style="font-size: 19px;">₹<span id="totalSalewithoutCreditnotes">{{subtotalWOCredit|default:0|floatformat:2}}</span></p></div>
-                                                                        <div class="col-4">Total Sale:<br>(Without Credit Note)<p id="purchase" style="font-size: 19px;">₹<span id="grantTotal">{{totalSaleWOCredit|default:0|floatformat:2}}</span></p></div>
+                                                                        <div class="col-4 ">Total Loan: <p id="sales" style="font-size: 19px;">₹<span id="totalInvoice">{{totloan|default:0|floatformat:2 }}</span></p></div>
+                                                                        <div class="col-4">Total Balance: <p id="purchase" style="font-size: 19px;">₹<span id="totalReccuringinvoice">{{totbalance|default:0|floatformat:2}}</span></p></div>
+                                                                    
                                                                     </div>
                                                 
                                                                 </div>
-                                                                <div class="col-2 text-center">
-                                                                    <h5 style="padding-top: 80px; color: #000; font-weight: bold;">Total Sale</h5>
-                                                                    <h4 class="text-dark" style="font-weight: 600;" id="totvalue">₹<span id="superTotal">{{totalSale|default:0|floatformat:2}}</span></h4>
-                                                                </div>
-                                                            </div>
-                                                        </section> -->
+                                                        </section>
                                                     </div>
                                                         
                                                 </div>
@@ -353,7 +341,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
               </button>
             </div>
             <div class="modal-body mx-3" style="background-color: #000;">
-              <form action="{% url 'shareSalesByCustomerReportToEmail' %}" method="post" id="share_to_email_form" class="needs-validation" novalidate enctype="multipart/form-data">
+              <form action="{% url 'employee_loan_details_mail' %}" method="post" id="share_to_email_form" class="needs-validation" novalidate enctype="multipart/form-data">
                 {%csrf_token%}
                 <div class="form-group">
                     <label for="emailIds">Email IDs</label>
@@ -383,12 +371,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
         </div>
       </div>
       <script>
-        $(document).ready(function(){
-            var trans = `{{transaction}}`;
-            if(trans != "" && trans != 'all'){
-                $('#salesTransactions').val(trans)
-            }
-        })
+        // $(document).ready(function(){
+        //     var trans = `{{transaction}}`;
+        //     if(trans != "" && trans != 'all'){
+        //         $('#salesTransactions').val(trans)
+        //     }
+        // })
         function toggleContent() {
             var contentDiv = document.getElementById("contentDiv");
             if (contentDiv.style.display === "block") {
@@ -401,9 +389,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
         $('#toggleEmailModal').on('click',function(){
             var st = $('#startDate').val();
             var end = $('#endDate').val();
-            var trns = $('#salesTransactions').val();
+            // var trns = $('#salesTransactions').val();
     
-            $('#trans').val(trns)
+            // $('#trans').val(trns)
             $('#startDt').val(st)
             $('#endDt').val(end)
     
@@ -442,7 +430,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                     
                     if(invalidEmails.length > 0){
                         alert('Invalid emails..Please check!\n'+invalidEmails)
-                        // alert(invalidEmails)
+                        
                     }else{
                         $('#share_to_email_form').submit();
                     }
@@ -472,7 +460,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
             var opt =
             {
                 margin: [0.5, 0.3, 0.3, 0.5],
-                filename: 'Report_SalesByCustomer',
+                filename: 'Employee Loan Details',
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2 },
                 jsPDF: { unit: 'cm', format: 'letter', orientation: 'portrait' }
@@ -498,7 +486,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
             const ws = XLSX.utils.table_to_sheet(Table);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-            XLSX.writeFile(wb, "Report_SalesByCustomer.xlsx");
+            XLSX.writeFile(wb, "Employee Loan Details.xlsx");
         }
     
         let sortOrder = false; // false for ascending, true for descending
@@ -525,14 +513,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
             }
         });
     
-        // Toggle arrow direction
+        
         const arrow = document.querySelector('.arrow');
         arrow.classList.toggle('up', sortOrder);
     
-        // Reorder the rows
+        
         rows.forEach(row => table.appendChild(row));
     
-        // Toggle sort order for the next click
+       
         sortOrder = !sortOrder;
         }
     </script>

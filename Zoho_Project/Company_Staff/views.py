@@ -47452,7 +47452,7 @@ def shareLoanReportToEmail(request):
 
 #---------------- Zoho Final Loan Report - Ginto Shaji - End-------------------->
 # Employee loan details
-def employee_loan_details(request):
+def employee_loan_report_details(request):
     if 'login_id' in request.session:
         log_id = request.session['login_id']
         log_details= LoginDetails.objects.get(id=log_id)
@@ -47465,61 +47465,183 @@ def employee_loan_details(request):
 
         allmodules= ZohoModules.objects.get(company = cmp)
         reportData = []
-        totbil = 0
-        totRecbil = 0
-        totdebNote = 0
-        subTot = 0
-        subTotWOdeb = 0
-        totjour =0
-
-        cust = Vendor.objects.filter(company=cmp)
-        for c in cust:
-            customerName = c.first_name +" "+c.last_name
-            count = 0
-            purch = 0
-            # bil = Bill.objects.filter(Vendor=c.id)
-            # deb = debitnote.objects.filter(vendor=c.id)
-            # recbil = Recurring_bills.objects.filter(vendor_details=c.id)
-            # recInv = RecurringInvoice.objects.filter(customer=c, status = 'Saved')
-            # crd = Credit_Note.objects.filter(customer=c, status = 'Saved')
+        totalloan =0
+        totalbalance =0
+        
+        emp = payroll_employee.objects.filter(company=cmp)
+        for c in emp:
+            employeeName = c.first_name +" "+c.last_name
+            empid = c.emp_number
+            emploan = EmployeeLoan.objects.filter(Employee=c)
+            for e in emploan:
+                loan = float(e.LoanAmount)
+                date = e.Loandate
+                exdate = e.Expiry_date
+                balance = float(e.balance)
             
-
-            # for i in bil:
-            #     purch += float(i.Grand_Total)
-            #     totbil += float(i.Grand_Total)
-            #     subTot += float(i.Sub_Total)
-            #     subTotWOdeb += float(i.Sub_Total)
-
-            # for r in recbil:
-            #     purch += float(r.total)
-            #     totRecbil += float(r.total)
-            #     subTot += float(r.sub_total)
-            #     subTotWOdeb += float(r.sub_total)
-
-            # for d in deb:
-            #     purch -= float(d.grandtotal)
-            #     totdebNote += float(d.grandtotal)
-            #     subTot -= float(d.subtotal)
-            
-            # count = len(bil) + len(recbil) + len(deb)
             details = {
-                'name': customerName,
-                # 'count':count,
-                # 'purch':purch
+                'name': employeeName,
+                'employee':emploan,
+                'loan':loan,
+                'date':date,
+                'expdate':exdate,
+                'balance':balance,
+                'id':empid,
             }
             reportData.append(details)
-        
-        totCust = len(cust)
-        # totSale = totbil + totRecbil - totdebNote 
-        # totSaleWOdebNote = totbil + totRecbil
-        # 'totalSale':totSale, 'totalSaleWOCredit':totSaleWOdebNote, 
+            totalloan = loan+totalloan
+            totalbalance = balance+totalbalance
         context = {
             'allmodules':allmodules, 'details':dash_details,'log_details':log_details , 'cmp':cmp,'reportData':reportData,
-            'totalCustomers':totCust, 'totalInvoice':totbil, 'totalRecInvoice':totRecbil, 'totalCreditNote': totdebNote,
-            'subtotal':subTot, 'subtotalWOCredit':subTotWOdeb,
-            'startDate':None, 'endDate':None
+            'totloan':totalloan,'startDate':None, 'endDate':None,'totbalance':totalbalance,
         }
         return render(request,'zohomodules/Reports/employee_loan_details.html',context)
     else:
         return redirect('/')
     
+def employee_loan_custom(request):
+    if 'login_id' in request.session:
+        log_id = request.session['login_id']
+        log_details= LoginDetails.objects.get(id=log_id)
+        if log_details.user_type == 'Company':
+            comp_details = CompanyDetails.objects.get(login_details = log_details)
+            dash_details = CompanyDetails.objects.get(login_details=log_details)
+        else:
+            comp_details = StaffDetails.objects.get(login_details = log_details).company
+            dash_details = CompanyDetails.objects.get(login_details=log_details)
+    
+    allmodules= ZohoModules.objects.get(company=comp_details)
+    
+    if request.method == 'GET':
+        startDate = request.GET['from_date']
+        endDate = request.GET['to_date']
+        if startDate == "":
+            startDate = None
+        if endDate == "":
+            endDate = None
+
+        reportData = []
+        totAmount = 0
+        totBalance = 0
+        
+        emploan = EmployeeLoan.objects.filter(company = comp_details,Loandate__range = [startDate, endDate])
+        if emploan:
+            for loan in emploan:
+                partyName = loan.Employee.first_name+" "+loan.Employee.last_name
+                date = loan.Loandate
+                type = 'Loan Account'
+                total = loan.LoanAmount
+                balance=loan.balance
+                empid=loan.Employee.emp_number
+                expdate=loan.Expiry_date
+                totAmount += float(loan.LoanAmount)
+                totBalance += float(loan.balance)
+                details = {'date': date,'name': partyName,'type':type,'loan':total,'balance':balance,'id':empid,'expdate':expdate}
+                reportData.append(details)
+  
+    return render(request,'zohomodules/Reports/employee_loan_details.html', {               
+                'allmodules': allmodules,
+                'log_details': log_details,              
+                'reportData':reportData,
+                'totloan':totAmount,
+                'totbalance':totBalance,
+                'startDate':startDate, 
+                'endDate':endDate,
+                'comp_details':comp_details,
+                'details':dash_details,              
+            })    
+
+def employee_loan_details_mail(request):
+    if 'login_id' in request.session:
+        log_id = request.session['login_id']
+        log_details = LoginDetails.objects.get(id=log_id)
+        if log_details.user_type == 'Company':
+            comp_details = CompanyDetails.objects.get(login_details=log_details)
+            dash_details = CompanyDetails.objects.get(login_details=log_details)
+        else:
+            comp_details = StaffDetails.objects.get(login_details=log_details).company
+            dash_details = CompanyDetails.objects.get(login_details=log_details)
+
+        if request.method == 'POST':   
+            emails_string = request.POST['email_ids']
+            emails_list = [email.strip() for email in emails_string.split(',')]
+            email_message = request.POST['email_message']
+
+            startDate = request.POST['start']
+            endDate = request.POST['end']
+            if startDate == "":
+                startDate = None
+            if endDate == "":
+                endDate = None
+
+            reportData = []
+            totAmount = 0
+            totBalance = 0
+            
+        if startDate == None or endDate == None:
+            
+            loan_acc = EmployeeLoan.objects.filter(company = comp_details)
+            if loan_acc:
+                for loan in loan_acc:
+                    partyName = loan.Employee.first_name+" "+loan.Employee.last_name
+                    date = loan.Loandate
+                    type = 'Loan Account'
+                    total = loan.LoanAmount
+                    balance=loan.balance
+                    empid=loan.Employee.emp_number
+                    expdate=loan.Expiry_date
+                    totAmount += float(loan.LoanAmount)
+                    totBalance += float(loan.balance)
+                    details = {'date': date,'name': partyName,'type':type,'loan':total,'balance':balance,'id':empid,'expdate':expdate}
+                    reportData.append(details)
+  
+                
+            loan_acc = EmployeeLoan.objects.filter(company = comp_details,Loandate__range = [startDate, endDate])
+            if loan_acc:
+                for loan in loan_acc:
+                    partyName = loan.Employee.first_name+" "+loan.Employee.last_name
+                    date = loan.Loandate
+                    type = 'Loan Account'
+                    total = loan.LoanAmount
+                    balance=loan.balance
+                    empid=loan.Employee.emp_number
+                    expdate=loan.Expiry_date
+                    totAmount += float(loan.LoanAmount)
+                    totBalance += float(loan.balance)
+                    details = {'date': date,'name': partyName,'type':type,'loan':total,'balance':balance,'id':empid,'expdate':expdate}
+                    reportData.append(details) 
+        
+        
+        context = {
+                'log_details': log_details,
+                'companyName': comp_details.company_name,
+                'reportData': reportData,
+                'totloan':totAmount,
+                'totbalance':totBalance,
+                'startDate': startDate,
+                'endDate': endDate,
+                'comp_details':comp_details,
+                'details':dash_details,  
+        }
+
+        template_path = 'zohomodules/Reports/employee_loan_report_mail.html'
+        template = get_template(template_path)
+
+        html = template.render(context)
+        result = BytesIO()
+        pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)                            
+        pdf = result.getvalue()
+        filename = 'Loan_Report'
+        subject = "Loan_Report"
+        email = EmailMsg(
+            subject,
+            f"Hi,\nPlease find the attached Report for - Loan Report. \n{email_message}\n\n--\nRegards,\n{comp_details.company_name}\n{comp_details.address}\n{comp_details.state} - {comp_details.country}\n{comp_details.contact}",
+            from_email=settings.EMAIL_HOST_USER,
+            to=emails_list
+        )
+            
+        email.from_email = settings.EMAIL_HOST_USER 
+        email.attach(filename, pdf, "application/pdf")
+        email.send(fail_silently=False)
+
+        return redirect(employee_loan_report_details)
