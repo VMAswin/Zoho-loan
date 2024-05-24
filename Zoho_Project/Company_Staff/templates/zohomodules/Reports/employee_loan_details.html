@@ -169,7 +169,10 @@
 input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(1);
 }
-
+#s1{
+    position: relative;
+    bottom: 63px;
+}
 </style>
 <body>       
     <div class="body-wrapper">
@@ -311,15 +314,19 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                                             
                                                         <section class="balance-info text-dark">
                                                             <div class="row p-4">
-                                                                <div class="col-10">
+                                                                <!-- <div style="text-align: right;margin-left: 300px;border: 1px solid red;"> -->
                                                     
-                                                                    <div class="row mb-2">
-                                                                        <div class="col-4 ">Total Loan: <p id="sales" style="font-size: 19px;">₹<span id="totalInvoice">{{totloan|default:0|floatformat:2 }}</span></p></div>
-                                                                        <div class="col-4">Total Balance: <p id="purchase" style="font-size: 19px;">₹<span id="totalReccuringinvoice">{{totbalance|default:0|floatformat:2}}</span></p></div>
-                                                                    
+                                                                    <div style="margin-left: 850px;width: 140px;">
+                                                                        <h5 style="padding-top: 0px; color: #000; font-weight: bold;">Total Loan:</h5>
+                                                                        <h4 class="text-dark" style="font-weight: 600;" id="totvalue">₹<span id="superTotal">{{totloan|default:0|floatformat:2 }}</span></h4>
+                                                                    </div>
+                                                                    <div style="margin-left: 700px;width: 140px;" id="s1">
+                                                                        <h5 style="padding-top: 0px; color: #000; font-weight: bold;">Total Balance:</h5>
+                                                                        <h4 class="text-dark" style="font-weight: 600;" id="totvalue">₹<span id="superTotal">{{totbalance|default:0|floatformat:2}}</span></h4>
                                                                     </div>
                                                 
-                                                                </div>
+                                                                <!-- </div> -->
+                                                                
                                                         </section>
                                                     </div>
                                                         
